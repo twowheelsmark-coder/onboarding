@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Getting Started | Two Wheels Marketing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1F2A44;--body:#3A4256;--muted:#6B7385;--paper:#FFFFFF;--ground:#F3F5F8;--rule:#D9DEE6;
+  --chalk:#3D6FB6;--found:#2F7D5B;--found-bg:#E7F3ED;--missing:#9A6413;--missing-bg:#FBF1E1;
+  --ours:#4F5B72;--ours-bg:#E9ECF2;--error:#B3261E;
+  --serif:"Source Serif 4",Georgia,serif;--sans:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--ground);color:var(--body);font:16px/1.6 var(--sans)}
+a{color:var(--chalk)}
+:focus-visible{outline:3px solid var(--chalk);outline-offset:2px;border-radius:3px}
+.wrap{max-width:760px;margin:0 auto;padding:0 16px}
+code{font:500 14px/1.4 var(--mono);background:var(--ours-bg);color:var(--ink);padding:1px 6px;border-radius:4px;white-space:nowrap}
+
+header.top{background:var(--ink);color:#fff;padding:48px 0 40px}
+header.top .agency{font-size:14px;color:#B9C3D6;margin:0 0 28px}
+header.top h1{font:600 clamp(30px,6vw,44px)/1.12 var(--serif);margin:0 0 14px;letter-spacing:-.01em}
+header.top p.lede{font-size:18px;line-height:1.55;color:#DCE2EC;margin:0;max-width:60ch}
+
+.ticket{background:var(--paper);border:1px solid var(--rule);border-top:6px solid var(--chalk);padding:24px 24px 8px}
+.ticket h2{font:600 20px/1.3 var(--serif);color:var(--ink);margin:0 0 4px}
+.ticket .sub{font-size:14px;color:var(--muted);margin:0 0 16px}
+.ticket dl{margin:0}
+.ticket .row{display:grid;grid-template-columns:minmax(120px,190px) 1fr;gap:4px 16px;padding:11px 0;border-top:1px dashed var(--rule)}
+.ticket dt{font-weight:600;color:var(--ink)}
+.ticket dd{margin:0}
+
+.progress{display:flex;align-items:center;gap:14px;margin:36px 0 8px}
+.progress .bar{flex:1;height:8px;background:var(--rule);border-radius:4px;overflow:hidden}
+.progress .fill{height:100%;width:0;background:var(--found);transition:width .3s ease}
+.progress .count{font-weight:600;color:var(--ink);font-size:15px;white-space:nowrap}
+
+h2.section{font:600 26px/1.25 var(--serif);color:var(--ink);margin:40px 0 6px}
+p.section-sub{margin:0 0 18px;color:var(--muted)}
+
+.item{background:var(--paper);border:1px solid var(--rule);border-left:5px solid var(--rule);border-radius:6px;margin:0 0 14px}
+.item.k-found{border-left-color:var(--found)}
+.item.k-missing{border-left-color:var(--missing)}
+.item.is-done{opacity:.72}
+.item summary{list-style:none;cursor:pointer;padding:18px 20px;display:grid;grid-template-columns:auto 1fr auto;gap:4px 14px;align-items:start}
+.item summary::-webkit-details-marker{display:none}
+.item .check{margin-top:3px}
+.item .check input{width:20px;height:20px;accent-color:var(--found);cursor:pointer}
+.item h3{font:600 19px/1.3 var(--serif);color:var(--ink);margin:0}
+.item .ask{margin:4px 0 0;font-size:15px}
+.item .chev{color:var(--muted);font-size:20px;line-height:1;transition:transform .2s ease;margin-top:2px}
+.item[open] .chev{transform:rotate(90deg)}
+.status{display:inline-block;font-size:13px;font-weight:600;padding:2px 9px;border-radius:999px;margin-top:8px}
+.status.found{background:var(--found-bg);color:var(--found)}
+.status.missing{background:var(--missing-bg);color:var(--missing)}
+.status.optional{background:var(--ours-bg);color:var(--ours)}
+.item .body{padding:0 20px 20px 54px}
+.item h4{font:600 15px/1.4 var(--sans);color:var(--ink);margin:18px 0 6px}
+.item ol,.item ul{margin:0;padding-left:22px}
+.item li{margin:0 0 6px}
+.item .clue{background:var(--ground);border-radius:6px;padding:12px 14px;margin:14px 0 0;font-size:15px}
+.item .clue strong{color:var(--ink)}
+.ui{font-weight:600;color:var(--ink)}
+
+.answer{margin:16px 0 4px;padding:14px;border:1px solid var(--chalk);border-radius:6px;background:#F7F9FD}
+.answer label{display:block;font-weight:600;color:var(--ink);margin:0 0 6px}
+.answer input,.answer select{width:100%;font:16px/1.4 var(--sans);padding:10px 12px;border:1px solid var(--rule);border-radius:6px;background:#fff;color:var(--ink)}
+.answer input:focus,.answer select:focus{border-color:var(--chalk);outline:none;box-shadow:0 0 0 3px rgba(61,111,182,.2)}
+.save-state{font-size:13px;color:var(--muted);min-height:18px;margin-top:6px}
+.save-state.err{color:var(--error)}
+
+.copy{font:600 13px/1 var(--sans);border:1px solid var(--rule);background:var(--paper);color:var(--chalk);border-radius:5px;padding:5px 9px;margin-left:6px;cursor:pointer;vertical-align:1px}
+.copy:hover{border-color:var(--chalk)}
+.copy.ok{color:var(--found);border-color:var(--found)}
+.forward{background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:16px;margin:12px 0 0}
+.forward pre{white-space:pre-wrap;font:14px/1.55 var(--sans);margin:0 0 12px;color:var(--body)}
+.btn{font:600 15px/1 var(--sans);background:var(--ink);color:#fff;border:0;border-radius:6px;padding:11px 16px;cursor:pointer}
+.btn.ok{background:var(--found)}
+
+.ours{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ours div{background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:14px 16px}
+.ours strong{display:block;color:var(--ink);margin-bottom:2px}
+.ours span{font-size:15px}
+
+.notice{background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:28px 24px;margin:40px 0}
+.notice h2{font:600 22px/1.3 var(--serif);color:var(--ink);margin:0 0 8px}
+.loading{color:var(--muted);padding:40px 0}
+
+footer{margin:48px 0 0;padding:28px 0 48px;border-top:1px solid var(--rule);font-size:15px;color:var(--muted)}
+
+@media (max-width:560px){
+  .ticket{padding:20px 16px 6px}
+  .ticket .row{grid-template-columns:1fr}
+  .item summary{padding:16px 14px;gap:4px 10px}
+  .item .body{padding:0 14px 18px 14px}
+  .ours{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media print{body{background:#fff}.copy,.btn,.progress,.answer{display:none}.item{break-inside:avoid}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <p class="agency">Two Wheels Marketing</p>
+    <h1 id="h1">Getting us connected</h1>
+    <p class="lede" id="lede">Loading your checklist.</p>
+  </div>
+</header>
+<main class="wrap" id="app"><p class="loading">Loading your checklist.</p></main>
+
+<script src="config.js"></script>
+<script>
+(function(){
+"use strict";
+var SCRIPT_URL = window.TWM_SCRIPT_URL || "";
+var CONTACT = "ryan@twowheelsmarketing.com";
+
+var token = (new URLSearchParams(location.search).get("c") || "").trim().toLowerCase();
+var app = document.getElementById("app");
+var state = { cfg: null, progress: {} };
+
+function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function rich(s){ return esc(s).replace(/`([^`]+)`/g, "<code>$1</code>"); }
+function copyBtn(text){ return '<button type="button" class="copy" data-copy="' + esc(text) + '">Copy</button>'; }
+function ui(s){ return '<span class="ui">' + esc(s) + '</span>'; }
+function link(url, label){ return '<a href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(label || url.replace(/^https?:\/\//, "")) + '</a>'; }
+function ol(items){ return "<ol><li>" + items.join("</li><li>") + "</li></ol>"; }
+function clue(title, text){ return '<div class="clue"><strong>' + esc(title) + '</strong> ' + text + '</div>'; }
+
+/* ---------- Instruction library: generic, no client data ---------- */
+var LIB = {
+  ga4: function(v, c){ return {
+    title: "Google Analytics",
+    ask: "Add us as an Administrator on the property with ID <code>" + esc(v.id) + "</code>.",
+    kind: "found", status: "Found on your site",
+    body:
+      "<h4>Find it</h4>" + ol([
+        "Go to " + link("https://analytics.google.com") + " signed in with the Google account you use for the business.",
+        "Click " + ui("Admin") + " (the gear, bottom left).",
+        "Open " + ui("Data collection and modification") + ", then " + ui("Data streams") + ". If you see <code>" + esc(v.id) + "</code>, you're in the right place."
+      ]) +
+      "<h4>Give us access</h4>" + ol([
+        "Still in Admin, open " + ui("Property access management") + ".",
+        "Click the blue " + ui("+") + ", then " + ui("Add users") + ".",
+        "Enter <code>" + esc(c.agency_email) + "</code>" + copyBtn(c.agency_email),
+        "Choose the " + ui("Administrator") + " role and click " + ui("Add") + "."
+      ]) +
+      clue("Can't find " + v.id + "?", "Click your profile picture (top right), switch to any other Google account you've used, and check again. Next, search your email for \"Google Analytics\": the invitation or setup email shows who created it. If none of that works, the person who built your website almost certainly set it up.")
+  };},
+
+  gtm: function(v, c){ return {
+    title: "Google Tag Manager",
+    ask: "Add us with Publish permission on container <code>" + esc(v.id) + "</code>.",
+    kind: "found", status: "Found on your site",
+    body:
+      "<h4>Give us access</h4>" + ol([
+        "Go to " + link("https://tagmanager.google.com") + ". You'll see a list of accounts; look for container <code>" + esc(v.id) + "</code>.",
+        "Click " + ui("Admin") + ", then " + ui("User Management") + " under the account.",
+        "Click the blue " + ui("+") + ", then " + ui("Add users") + ", and enter <code>" + esc(c.agency_email) + "</code>" + copyBtn(c.agency_email),
+        "Set account permission to " + ui("User") + ", then under container permissions choose " + ui("Publish") + " for <code>" + esc(v.id) + "</code>, and click " + ui("Invite") + "."
+      ]) +
+      clue("Don't see " + v.id + "?", "Try your other Google accounts, then search your email for \"Tag Manager\". Whoever installed it on your site has access" + (v.likely_owner ? "; it looks like " + esc(v.likely_owner) + " may have set it up." : "."))
+  };},
+
+  gbp: function(v, c){ return {
+    title: "Google Business Profile",
+    ask: "Add us as a Manager on your " + esc(v.listing) + " listing.",
+    kind: "found", status: "Found on your site",
+    body:
+      "<h4>Give us access</h4>" + ol([
+        "Signed in to Google, search for " + ui(v.listing) + ". Your profile controls appear above the results.",
+        "Click the three dots menu, then " + ui("Business Profile settings") + ".",
+        "Click " + ui("People and access") + ", then " + ui("Add") + ".",
+        "Enter <code>" + esc(c.agency_email) + "</code>" + copyBtn(c.agency_email) + ", choose " + ui("Manager") + ", and click " + ui("Invite") + "."
+      ]) +
+      clue("Don't see the controls?", "You're signed in to a Google account that doesn't manage the listing. Switch accounts and search again, or search your email for \"Google Business Profile\" to find which account gets its notices.")
+  };},
+
+  meta: function(v){ var noPage = !v.page_found; return {
+    title: "Facebook and Instagram",
+    ask: noPage ? "Tell us whether your Instagram is connected to a Facebook Page, then approve one request from us."
+                : "Approve the partner request we send for your Facebook Page.",
+    kind: noPage ? "missing" : "found", status: noPage ? "Needs a quick check" : "Found on your site",
+    answer: { label: "Your Facebook Page link, or type \"no Page\"", type: "text", placeholder: "facebook.com/yourpage" },
+    body:
+      (noPage ? "<p>Running ads on Instagram requires a Facebook Page and a Meta business portfolio. Your site " + (v.instagram ? "links to Instagram (" + esc(v.instagram) + ") but " : "") + "doesn't link to a Facebook Page, so we need to confirm what exists.</p>" : "") +
+      "<h4>Check what you have</h4>" + ol([
+        "Go to " + link("https://business.facebook.com") + ".",
+        "Open " + ui("Settings") + ", then " + ui("Accounts") + ". Look under " + ui("Pages") + " and " + ui("Instagram accounts") + ".",
+        "Put your Facebook Page link in the box above" + (v.instagram ? ", and check that " + esc(v.instagram) + " is listed" : "") + "."
+      ]) +
+      "<h4>Then approve our request</h4>" + ol([
+        "We'll send a partner request from Two Wheels Marketing for your Page.",
+        "In " + ui("Settings") + ", open " + ui("Requests") + " and click " + ui("Approve") + "."
+      ]) +
+      clue("If business.facebook.com shows nothing,", "you don't have a portfolio yet. That's fine: type \"no Page\" in the box above and we'll walk you through creating one on a short call." +
+        (v.parent_brand ? " If " + esc(v.parent_brand) + " set up your Instagram or Page for you, the company may own it in its own portfolio. Our request will reveal that, and if " + esc(v.parent_brand) + " has guidelines for partner advertising, please send them our way." : ""))
+  };},
+
+  gads: function(v){ return {
+    title: "Google Ads",
+    ask: "Tell us if you've ever run Google Ads. If so, give us the 10-digit customer ID.",
+    kind: v.found ? "found" : "missing", status: v.found ? "Found on your site" : "Not found on your site",
+    answer: { label: "Customer ID, or type \"no account\"", type: "text", placeholder: "123-456-7890" },
+    body:
+      (v.found ? "" : "<p>We didn't find Google Ads tracking on your site, which usually means there's no account yet. Accounts are sometimes created without much notice, though, for example by accepting a \"promote your business\" offer inside Google Business Profile.</p>") +
+      "<h4>If you have an account</h4>" + ol([
+        "Sign in at " + link("https://ads.google.com") + ". The customer ID is the number shaped like 123-456-7890 at the top of the page.",
+        "Enter it in the box above. We'll send a link request from our manager account.",
+        "In Google Ads, open " + ui("Admin") + ", then " + ui("Access and security") + ", then the " + ui("Managers") + " tab, and accept the request."
+      ]) +
+      clue("Not sure?", "Search your email for \"Google Ads\". Receipts and billing emails list the customer ID. If nothing turns up, type \"no account\" and we'll create one; you'll only need to add a payment method.")
+  };},
+
+  site_static: function(v, c){
+    var note = "Hi,\n\nTwo Wheels Marketing is now handling advertising and analytics for " + c.client + " (" + c.domain + "). They need Google Tag Manager added to the site, and either of these options works:\n\n" +
+      "1. They'll send a short Google Tag Manager code snippet. Please add it to every page (one part in the <head>, one right after the opening <body> tag)" + (v.host_detail ? ", deploy it to the " + v.host_detail : "") + (v.cdn ? ", and clear the " + v.cdn + " cache" : "") + ".\n\n" +
+      "2. Or give them limited access to the hosting account (" + v.host + "), scoped to this site, so they can make tracking changes themselves.\n\n" +
+      (v.keep_tag ? "Please keep the existing Google Analytics tag (" + v.keep_tag + ") in place for now; they'll move it into Tag Manager without a gap in data.\n\n" : "") +
+      "Contact: " + c.contact_email + "\n\nThanks,\n" + (c.contact || "");
+    return {
+      title: "Your website",
+      ask: "Tell us who built " + esc(c.domain) + ", and forward them the note below.",
+      kind: "missing", status: "Needs your developer",
+      answer: { label: "Your web developer's name and email", type: "text", placeholder: "Name, email" },
+      body:
+        "<p>Your site is custom-coded and hosted on " + esc(v.host) + ", so there's no admin login to share. To track bookings and ad results, Google Tag Manager needs to be added to the site once. After that, we manage tracking without touching the site again.</p>" +
+        (v.updated ? "<p>The site files were last updated " + esc(v.updated) + ", so whoever made that change has access.</p>" : "") +
+        "<h4>Note to forward to your web developer</h4>" +
+        '<div class="forward"><pre id="devnote">' + esc(note) + '</pre><button type="button" class="btn" data-copy-target="devnote">Copy note</button></div>' +
+        clue("Don't know who built it?", "Search your email for \"" + esc(c.domain.split(".")[0]) + "\"" + (v.host ? " or \"" + esc(v.host) + "\". Billing emails from the host go to the account owner." : "."))
+    };
+  },
+
+  site_wordpress: function(v, c){ var login = v.login_url || ("https://" + c.domain + "/wp-admin"); return {
+    title: "Your website (WordPress)",
+    ask: "Create a WordPress Administrator login for us.",
+    kind: "found", status: "Found on your site",
+    body:
+      "<h4>Give us access</h4>" + ol([
+        "Log in at " + link(login) + ".",
+        "Go to " + ui("Users") + ", then " + ui("Add New User") + ".",
+        "Username " + ui("twowheelsmarketing") + ", email <code>" + esc(c.agency_email) + "</code>" + copyBtn(c.agency_email) + ".",
+        "Set the role to " + ui("Administrator") + " and click " + ui("Add New User") + ". We'll set our own password from the email WordPress sends."
+      ]) +
+      clue("Can't log in?", (v.credit ? "Your site credits " + esc(v.credit) + ", who should have an admin login. " : "") + "Ask whoever built the site to add us, using the steps above.")
+  };},
+
+  calendly: function(){ return {
+    title: "Calendly",
+    ask: "Tell us which Calendly plan you're on.",
+    kind: "missing", status: "Needs an answer",
+    answer: { label: "Your Calendly plan", type: "select", options: ["", "Free", "Standard", "Teams", "Not sure"] },
+    body:
+      "<p>Booked appointments are the result your ads are judged on. Your booking buttons send visitors to calendly.com, so right now Google Analytics can't see a completed booking. Calendly's tracking connections depend on your plan, which decides how we set this up.</p>" +
+      "<h4>Find your plan</h4>" + ol([
+        "Sign in at " + link("https://calendly.com") + ".",
+        "Click your profile picture, then " + ui("Billing") + ". Your plan is listed at the top."
+      ])
+  };},
+
+  dns_cloudflare: function(v, c){ return {
+    title: "Domain (Cloudflare)",
+    ask: "Invite us as a member of your Cloudflare account.",
+    kind: "optional", status: "Optional for now",
+    body:
+      "<p>We only need this for domain verifications with Google and Meta. If you'd rather not share it, we'll send you the exact records to add when the time comes.</p>" +
+      "<h4>Give us access</h4>" + ol([
+        "Sign in at " + link("https://dash.cloudflare.com") + ".",
+        "Open " + ui("Manage Account") + ", then " + ui("Members") + ", then " + ui("Invite") + ".",
+        "Enter <code>" + esc(c.agency_email) + "</code>" + copyBtn(c.agency_email) + ", choose the " + ui("Administrator") + " role, and send the invite."
+      ]) +
+      clue("Not sure which login?", "Search your email for \"Cloudflare\". Renewal notices and receipts go to the account owner.")
+  };}
+};
+
+/* ---------- API ---------- */
+function api(payload){
+  if (!payload) return fetch(SCRIPT_URL + "?c=" + encodeURIComponent(token)).then(function(r){ return r.json(); });
+  payload.c = token;
+  return fetch(SCRIPT_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) })
+    .then(function(r){ return r.json(); });
+}
+
+function notice(title, text){
+  document.getElementById("lede").textContent = "";
+  app.innerHTML = '<div class="notice"><h2>' + esc(title) + "</h2><p>" + text + "</p></div>";
+}
+
+/* ---------- Render ---------- */
+function render(){
+  var c = state.cfg;
+  document.title = "Getting Started: " + c.client + " | Two Wheels Marketing";
+  document.getElementById("h1").textContent = "Getting us connected" + (c.contact ? ", " + c.contact : "");
+  document.getElementById("lede").textContent = "We scanned " + c.domain + " before reaching out, so this list only covers what your business actually uses. Each item tells you where to look, which ID to look for, and what to do if you can't find it.";
+
+  var html = '<section class="ticket" aria-labelledby="found-h"><h2 id="found-h">What we found on ' + esc(c.domain) + '</h2><p class="sub">Scanned ' + esc(c.scanned) + "</p><dl>";
+  (c.found || []).forEach(function(r){ html += '<div class="row"><dt>' + esc(r[0]) + "</dt><dd>" + rich(r[1]) + "</dd></div>"; });
+  html += "</dl></section>";
+
+  html += '<div class="progress" aria-live="polite"><div class="bar"><div class="fill" id="fill"></div></div><span class="count" id="count"></span></div>';
+  html += '<h2 class="section">What we need from you</h2><p class="section-sub">Check each one off as you go. Progress saves automatically, so you can stop and come back from any device.</p>';
+
+  (c.items || []).forEach(function(it){
+    var fn = LIB[it.key]; if (!fn) return;
+    var d = fn(it.vars || {}, c);
+    var kind = it.optional ? "optional" : d.kind;
+    var status = it.optional ? "Optional for now" : d.status;
+    var p = state.progress[it.key] || {};
+    html += '<details class="item k-' + kind + (p.checked ? " is-done" : "") + '" data-key="' + esc(it.key) + '">' +
+      "<summary>" +
+        '<span class="check"><input type="checkbox"' + (p.checked ? " checked" : "") + ' aria-label="Mark ' + esc(d.title) + ' as done"></span>' +
+        "<span><h3>" + esc(d.title) + '</h3><p class="ask">' + d.ask + '</p><span class="status ' + kind + '">' + esc(status) + "</span></span>" +
+        '<span class="chev" aria-hidden="true">&#8250;</span>' +
+      "</summary>" +
+      '<div class="body">' + (d.answer ? answerField(it.key, d.answer, p.answer) : "") + d.body + "</div>" +
+    "</details>";
+  });
+
+  if (c.handled && c.handled.length){
+    html += '<h2 class="section">What we\'ll handle</h2><p class="section-sub">Nothing to do here. Once access is in place, we set these up inside accounts you own.</p><div class="ours">';
+    c.handled.forEach(function(h){ html += "<div><strong>" + esc(h[0]) + "</strong><span>" + esc(h[1]) + "</span></div>"; });
+    html += "</div>";
+  }
+  html += '<footer>Questions? Email <a href="mailto:' + esc(c.contact_email || CONTACT) + '">' + esc(c.contact_email || CONTACT) + "</a> and we'll walk through any of these with you.</footer>";
+  app.innerHTML = html;
+  wire();
+  updateProgress();
+}
+
+function answerField(key, a, value){
+  var id = "ans-" + key, field;
+  if (a.type === "select"){
+    field = '<select id="' + id + '">' + a.options.map(function(o){ return '<option value="' + esc(o) + '"' + (o === (value || "") ? " selected" : "") + ">" + esc(o || "Choose one") + "</option>"; }).join("") + "</select>";
+  } else {
+    field = '<input id="' + id + '" type="text" maxlength="200" autocomplete="off" placeholder="' + esc(a.placeholder || "") + '" value="' + esc(value || "") + '">';
+  }
+  return '<div class="answer"><label for="' + id + '">' + esc(a.label) + "</label>" + field + '<div class="save-state" aria-live="polite"></div></div>';
+}
+
+function updateProgress(){
+  var items = app.querySelectorAll(".item"), done = 0;
+  items.forEach(function(it){ if (it.querySelector(".check input").checked) done++; });
+  document.getElementById("count").textContent = done + " of " + items.length + " done";
+  document.getElementById("fill").style.width = (items.length ? done / items.length * 100 : 0) + "%";
+}
+
+function setCheck(item, cb, checked){
+  var key = item.dataset.key;
+  cb.checked = checked;
+  item.classList.toggle("is-done", checked);
+  updateProgress();
+  return api({ key: key, checked: checked }).then(function(r){
+    if (!r || !r.ok) throw new Error("save");
+  }).catch(function(){
+    cb.checked = !checked; item.classList.toggle("is-done", !checked); updateProgress();
+    alertSave(item, "Couldn't save that checkmark. Check your connection and try again.");
+  });
+}
+
+function alertSave(item, msg){
+  var s = item.querySelector(".save-state");
+  if (s){ s.textContent = msg; s.classList.add("err"); }
+  else { item.querySelector(".ask").insertAdjacentHTML("afterend", '<p class="save-state err">' + esc(msg) + "</p>"); }
+}
+
+function wire(){
+  app.querySelectorAll(".item").forEach(function(item){
+    var cb = item.querySelector(".check input");
+    cb.addEventListener("click", function(e){ e.stopPropagation(); });
+    cb.addEventListener("change", function(){ setCheck(item, cb, cb.checked); });
+
+    var field = item.querySelector(".answer input, .answer select");
+    if (!field) return;
+    var stateEl = item.querySelector(".save-state"), last = field.value, timer;
+    function save(){
+      var v = field.value.trim();
+      if (v === last) return;
+      stateEl.classList.remove("err"); stateEl.textContent = "Saving";
+      api({ key: item.dataset.key, answer: v }).then(function(r){
+        if (!r || !r.ok) throw new Error("save");
+        last = v; stateEl.textContent = v ? "Saved" : "Cleared";
+        if (v && !cb.checked) setCheck(item, cb, true);
+      }).catch(function(){ stateEl.textContent = "Couldn't save your answer. Check your connection and try again."; stateEl.classList.add("err"); });
+    }
+    field.addEventListener("change", save);
+    field.addEventListener("input", function(){ clearTimeout(timer); timer = setTimeout(save, 1200); });
+  });
+
+  app.querySelectorAll("[data-copy]").forEach(function(b){
+    b.addEventListener("click", function(e){ e.preventDefault(); copyText(b.dataset.copy, b); });
+  });
+  app.querySelectorAll("[data-copy-target]").forEach(function(b){
+    b.addEventListener("click", function(){ copyText(document.getElementById(b.dataset.copyTarget).textContent, b); });
+  });
+}
+
+function copyText(text, btn){
+  var label = btn.textContent;
+  function ok(){ btn.textContent = "Copied"; btn.classList.add("ok"); setTimeout(function(){ btn.textContent = label; btn.classList.remove("ok"); }, 1800); }
+  function fallback(){
+    var ta = document.createElement("textarea"); ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); ok(); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+  if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(ok, fallback); else fallback();
+}
+
+/* ---------- Boot ---------- */
+if (!SCRIPT_URL){ notice("Checklist unavailable", "This page isn't set up yet. Email " + '<a href="mailto:' + CONTACT + '">' + CONTACT + "</a>."); return; }
+if (!/^[a-z0-9]{8,32}$/.test(token)){
+  notice("Use the link we sent you", "This page is personalized for each business. Open the link from our email, or contact " + '<a href="mailto:' + CONTACT + '">' + CONTACT + "</a>.");
+  return;
+}
+api().then(function(r){
+  if (!r || !r.ok){ notice("This link isn't active", "It may have expired or been mistyped. Email " + '<a href="mailto:' + CONTACT + '">' + CONTACT + "</a> and we'll send a fresh one."); return; }
+  state.cfg = r.config; state.progress = r.progress || {};
+  render();
+}).catch(function(){
+  notice("Couldn't load your checklist", "Check your connection and refresh the page. If it keeps happening, email " + '<a href="mailto:' + CONTACT + '">' + CONTACT + "</a>.");
+});
+})();
+</script>
+</body>
+</html>
