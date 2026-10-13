@@ -33,15 +33,19 @@ header.top .client-logo.chip{background:#fff;padding:6px 10px;border-radius:6px;
 header.top h1{font:600 clamp(30px,6vw,44px)/1.12 var(--serif);margin:0 0 14px;letter-spacing:-.01em}
 header.top p.lede{font-size:18px;line-height:1.55;color:#DCE2EC;margin:0;max-width:60ch}
 
-.ticket{background:var(--paper);border:1px solid var(--rule);border-top:6px solid var(--chalk);padding:24px 24px 8px}
-.ticket h2{font:600 20px/1.3 var(--serif);color:var(--ink);margin:0 0 4px}
-.ticket .sub{font-size:14px;color:var(--muted);margin:0 0 16px}
+.ticket{background:transparent;border:1px solid var(--rule);border-radius:6px;margin:40px 0 0;font-size:15px}
+.ticket summary{list-style:none;cursor:pointer;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:12px;font-weight:600;color:var(--ink)}
+.ticket summary::-webkit-details-marker{display:none}
+.ticket summary .chev{color:var(--muted);font-size:18px;transition:transform .2s ease}
+.ticket[open] summary .chev{transform:rotate(90deg)}
+.ticket .inner{padding:0 18px 8px}
+.ticket .sub{font-size:14px;color:var(--muted);margin:0 0 10px}
 .ticket dl{margin:0}
 .ticket .row{display:grid;grid-template-columns:minmax(120px,190px) 1fr;gap:4px 16px;padding:11px 0;border-top:1px dashed var(--rule)}
 .ticket dt{font-weight:600;color:var(--ink)}
 .ticket dd{margin:0}
 
-.progress{display:flex;align-items:center;gap:14px;margin:36px 0 8px}
+.progress{display:flex;align-items:center;gap:14px;margin:0 0 22px}
 .progress .bar{flex:1;height:8px;background:var(--rule);border-radius:4px;overflow:hidden}
 .progress .fill{height:100%;width:0;background:var(--found);transition:width .3s ease}
 .progress .count{font-weight:600;color:var(--ink);font-size:15px;white-space:nowrap}
@@ -103,7 +107,6 @@ footer{margin:48px 0 0;padding:28px 0 48px;border-top:1px solid var(--rule);font
   header.top .twm-logo{height:32px}
   header.top .client-logo{max-width:160px;max-height:20px}
   header.top .brands{gap:14px}
-  .ticket{padding:20px 16px 6px}
   .ticket .row{grid-template-columns:1fr}
   .item summary{padding:16px 14px;gap:4px 10px}
   .item .body{padding:0 14px 18px 14px}
@@ -111,6 +114,7 @@ footer{margin:48px 0 0;padding:28px 0 48px;border-top:1px solid var(--rule);font
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 @media print{body{background:#fff}.copy,.btn,.progress,.answer{display:none}.item{break-inside:avoid}}
+h2.section.first{margin-top:36px}
 </style>
 </head>
 <body>
@@ -208,7 +212,7 @@ var LIB = {
   gbp: function(v, c){ return {
     title: "Google Business Profile",
     ask: "Add us as a Manager on your " + esc(v.listing) + " listing.",
-    kind: "found", status: "Found on your site",
+    kind: v.found === false ? "missing" : "found", status: v.found === false ? "Needs a quick check" : "Found on your site",
     body:
       "<h4>Give us access</h4>" + ol([
         "Signed in to Google, search for " + ui(v.listing) + ". Your profile controls appear above the results.",
@@ -302,6 +306,31 @@ var LIB = {
       ])
   };},
 
+  /* Generic item for anything the library doesn't cover (Shopify, Wix, GoDaddy DNS, Acuity...).
+     Text fields support `code`, **bold UI label**, [link text](https://url) and {{agency_email}}. */
+  custom: function(v, c){
+    function fmt(s){
+      return esc(s)
+        .replace(/\{\{agency_email\}\}/g, "<code>" + esc(c.agency_email) + "</code>" + copyBtn(c.agency_email))
+        .replace(/`([^`]+)`/g, "<code>$1</code>")
+        .replace(/\*\*([^*]+)\*\*/g, '<span class="ui">$1</span>')
+        .replace(/\[([^\]]+)\]\((https:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+    }
+    var body = (v.intro ? "<p>" + fmt(v.intro) + "</p>" : "");
+    (v.sections || []).forEach(function(sec){
+      body += (sec.heading ? "<h4>" + esc(sec.heading) + "</h4>" : "") + ol((sec.steps || []).map(fmt));
+    });
+    if (v.fallback) body += clue(v.fallback.title || "", fmt(v.fallback.text || ""));
+    return {
+      title: v.title || "",
+      ask: fmt(v.ask || ""),
+      kind: v.kind || "missing",
+      status: v.status || (v.kind === "found" ? "Found on your site" : v.kind === "optional" ? "Optional for now" : "Needs a quick check"),
+      answer: v.answer || null,
+      body: body
+    };
+  },
+
   dns_cloudflare: function(v, c){ return {
     title: "Domain (Cloudflare)",
     ask: "Invite us as a member of your Cloudflare account.",
@@ -339,17 +368,13 @@ function render(){
     b.insertAdjacentHTML("beforeend", '<span class="brand-sep" aria-hidden="true"></span><img class="client-logo' + (c.logo_style === "chip" ? " chip" : "") + '" src="' + esc(c.logo) + '" alt="' + esc(c.client) + '">');
   }
   document.getElementById("h1").textContent = "Getting us connected" + (c.contact ? ", " + c.contact : "");
-  document.getElementById("lede").textContent = "We scanned " + c.domain + " before reaching out, so this list only covers what your business actually uses. Each item tells you where to look, which ID to look for, and what to do if you can't find it.";
+  document.getElementById("lede").textContent = "This list is built for " + c.domain + ", so it only covers what your business actually uses. Check each item off as you go. Progress saves automatically, so you can stop and come back from any device.";
 
-  var html = '<section class="ticket" aria-labelledby="found-h"><h2 id="found-h">What we found on ' + esc(c.domain) + '</h2><p class="sub">Scanned ' + esc(c.scanned) + "</p><dl>";
-  (c.found || []).forEach(function(r){ html += '<div class="row"><dt>' + esc(r[0]) + "</dt><dd>" + rich(r[1]) + "</dd></div>"; });
-  html += "</dl></section>";
-
+  var html = '<h2 class="section first">What we need from you</h2><p class="section-sub">Open any item for step-by-step help: where to look, what to click, and what to do if you get stuck.</p>';
   html += '<div class="progress" aria-live="polite"><div class="bar"><div class="fill" id="fill"></div></div><span class="count" id="count"></span></div>';
-  html += '<h2 class="section">What we need from you</h2><p class="section-sub">Check each one off as you go. Progress saves automatically, so you can stop and come back from any device.</p>';
 
   (c.items || []).forEach(function(it){
-    var fn = LIB[it.key]; if (!fn) return;
+    var fn = LIB[String(it.key).split(":")[0]]; if (!fn) return; // custom items use keys like "custom:shopify"
     var d = fn(it.vars || {}, c);
     var kind = it.optional ? "optional" : d.kind;
     var status = it.optional ? "Optional for now" : d.status;
@@ -368,6 +393,11 @@ function render(){
     html += '<h2 class="section">What we\'ll handle</h2><p class="section-sub">Nothing to do here. Once access is in place, we set these up inside accounts you own.</p><div class="ours">';
     c.handled.forEach(function(h){ html += "<div><strong>" + esc(h[0]) + "</strong><span>" + esc(h[1]) + "</span></div>"; });
     html += "</div>";
+  }
+  if (c.found && c.found.length){
+    html += '<details class="ticket"><summary><span>What we found on ' + esc(c.domain) + '</span><span class="chev" aria-hidden="true">&#8250;</span></summary><div class="inner"><p class="sub">From our scan on ' + esc(c.scanned) + ". For reference only, nothing to do here.</p><dl>";
+    (c.found || []).forEach(function(r){ html += '<div class="row"><dt>' + esc(r[0]) + "</dt><dd>" + rich(r[1]) + "</dd></div>"; });
+    html += "</dl></div></details>";
   }
   html += '<footer>Questions? Email <a href="mailto:' + esc(c.contact_email || CONTACT) + '">' + esc(c.contact_email || CONTACT) + "</a> and we'll walk through any of these with you.</footer>";
   app.innerHTML = html;
