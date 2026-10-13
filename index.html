@@ -161,6 +161,7 @@ h2.section.first{margin-top:36px}
 "use strict";
 var SCRIPT_URL = window.TWM_SCRIPT_URL || "";
 var CONTACT = "ryan@twowheelsmarketing.com";
+var META_BUSINESS_ID = "1555589024761863"; // Two Wheels Marketing business portfolio
 
 var token = (new URLSearchParams(location.search).get("c") || "").trim().toLowerCase();
 var app = document.getElementById("app");
@@ -223,25 +224,35 @@ var LIB = {
       clue("Don't see the controls?", "You're signed in to a Google account that doesn't manage the listing. Switch accounts and search again, or search your email for \"Google Business Profile\" to find which account gets its notices.")
   };},
 
-  meta: function(v){ var noPage = !v.page_found; return {
+  meta: function(v, c){
+    var bid = c.meta_business_id || META_BUSINESS_ID;
+    var found = v.page_found || v.pixel_id;
+    var assets = ["your Facebook Page", "ad account", "dataset (pixel)"].concat(v.ecommerce ? ["catalog"] : []);
+    var list = assets.slice(0, -1).join(", ") + " and " + assets[assets.length - 1];
+    return {
     title: "Facebook and Instagram",
-    ask: noPage ? "Tell us whether your Instagram is connected to a Facebook Page, then approve one request from us."
-                : "Approve the partner request we send for your Facebook Page.",
-    kind: noPage ? "missing" : "found", status: noPage ? "Needs a quick check" : "Found on your site",
-    answer: { label: "Your Facebook Page link, or type \"no Page\"", type: "text", placeholder: "facebook.com/yourpage" },
+    ask: "Add us as a Partner with business ID <code>" + esc(bid) + "</code>, then share " + esc(list) + ".",
+    kind: found ? "found" : "missing", status: found ? "Found on your site" : "Needs a quick check",
+    answer: { label: "How did it go?", type: "select", options: ["", "Done, everything is shared", "Some items weren't listed", "We don't have a business portfolio", "Not sure, please help"],
+              no_check: ["Some items weren't listed", "We don't have a business portfolio", "Not sure, please help"] },
     body:
-      (noPage ? "<p>Running ads on Instagram requires a Facebook Page and a Meta business portfolio. Your site " + (v.instagram ? "links to Instagram (" + esc(v.instagram) + ") but " : "") + "doesn't link to a Facebook Page, so we need to confirm what exists.</p>" : "") +
-      "<h4>Check what you have</h4>" + ol([
-        "Go to " + link("https://business.facebook.com") + ".",
-        "Open " + ui("Settings") + ", then " + ui("Accounts") + ". Look under " + ui("Pages") + " and " + ui("Instagram accounts") + ".",
-        "Put your Facebook Page link in the box above" + (v.instagram ? ", and check that " + esc(v.instagram) + " is listed" : "") + "."
+      (!v.page_found ? "<p>Ads on Facebook and Instagram run from a Meta business portfolio. Your site " + (v.instagram ? "links to Instagram (" + esc(v.instagram) + ") but " : "") + "doesn't link to a Facebook Page, so the steps below also tell us what exists.</p>" : "") +
+      "<h4>Add us as a Partner</h4>" + ol([
+        "Go to " + link("https://business.facebook.com/settings") + ". If you manage more than one business, pick the right one in the top left.",
+        "In the left menu under " + ui("Users") + ", click " + ui("Partners") + ".",
+        "Click " + ui("Add") + ", then " + ui("Give a partner access to your assets") + ".",
+        "Paste our business ID <code>" + esc(bid) + "</code>" + copyBtn(bid) + " and click " + ui("Next") + ". You'll see Two Wheels Marketing."
       ]) +
-      "<h4>Then approve our request</h4>" + ol([
-        "We'll send a partner request from Two Wheels Marketing for your Page.",
-        "In " + ui("Settings") + ", open " + ui("Requests") + " and click " + ui("Approve") + "."
-      ]) +
-      clue("If business.facebook.com shows nothing,", "you don't have a portfolio yet. That's fine: type \"no Page\" in the box above and we'll walk you through creating one on a short call." +
-        (v.parent_brand ? " If " + esc(v.parent_brand) + " set up your Instagram or Page for you, the company may own it in its own portfolio. Our request will reveal that, and if " + esc(v.parent_brand) + " has guidelines for partner advertising, please send them our way." : ""))
+      "<h4>Share these, with full control</h4>" + ol([
+        ui("Pages") + ": your Facebook Page" + (v.page ? " (" + esc(v.page) + ")" : "") + ".",
+        ui("Ad accounts") + ": the account you pay for ads from. If there isn't one yet, skip it and we'll set one up with you.",
+        ui("Datasets") + " (called " + ui("Pixels") + " on some accounts)" + (v.pixel_id ? ": look for ID <code>" + esc(v.pixel_id) + "</code>, which is the one on your site" : "") + ".",
+      ].concat(v.ecommerce ? [ui("Catalogs") + ": your product catalog."] : []).concat([
+        "For each one, turn on " + ui("Full control") + " (or switch on every permission), then click " + ui("Assign assets") + " or " + ui("Save") + ".",
+        "Pick an answer in the box above so we know it's done."
+      ])) +
+      clue("Don't see Partners or Business settings?", "You may not have a business portfolio yet, or you're signed in to a different Facebook profile. Choose \"We don't have a business portfolio\" above and we'll walk you through it on a short call." +
+        (v.parent_brand ? " If " + esc(v.parent_brand) + " set up your Page or Instagram for you, the company may own them in its own portfolio. Choose \"Some items weren't listed\" and, if " + esc(v.parent_brand) + " has guidelines for partner advertising, please send them our way." : ""))
   };},
 
   gads: function(v){ return {
@@ -412,7 +423,7 @@ function answerField(key, a, value){
   } else {
     field = '<input id="' + id + '" type="text" maxlength="200" autocomplete="off" placeholder="' + esc(a.placeholder || "") + '" value="' + esc(value || "") + '">';
   }
-  return '<div class="answer"><label for="' + id + '">' + esc(a.label) + "</label>" + field + '<div class="save-state" aria-live="polite"></div></div>';
+  return '<div class="answer" data-nocheck="' + esc(JSON.stringify(a.no_check || [])) + '"><label for="' + id + '">' + esc(a.label) + "</label>" + field + '<div class="save-state" aria-live="polite"></div></div>';
 }
 
 function updateProgress(){
@@ -457,7 +468,8 @@ function wire(){
       api({ key: item.dataset.key, answer: v }).then(function(r){
         if (!r || !r.ok) throw new Error("save");
         last = v; stateEl.textContent = v ? "Saved" : "Cleared";
-        if (v && !cb.checked) setCheck(item, cb, true);
+        var noCheck = []; try { noCheck = JSON.parse(item.querySelector(".answer").dataset.nocheck || "[]"); } catch (e) {}
+        if (v && !cb.checked && noCheck.indexOf(v) === -1) setCheck(item, cb, true);
       }).catch(function(){ stateEl.textContent = "Couldn't save your answer. Check your connection and try again."; stateEl.classList.add("err"); });
     }
     field.addEventListener("change", save);
