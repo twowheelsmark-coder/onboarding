@@ -423,7 +423,7 @@ function answerField(key, a, value){
   } else {
     field = '<input id="' + id + '" type="text" maxlength="200" autocomplete="off" placeholder="' + esc(a.placeholder || "") + '" value="' + esc(value || "") + '">';
   }
-  return '<div class="answer" data-nocheck="' + esc(JSON.stringify(a.no_check || [])) + '"><label for="' + id + '">' + esc(a.label) + "</label>" + field + '<div class="save-state" aria-live="polite"></div></div>';
+  return '<div class="answer" data-nocheck="' + esc(JSON.stringify(a.no_check || [])) + '" data-autocheck="' + (a.auto_check === false ? "0" : "1") + '"><label for="' + id + '">' + esc(a.label) + "</label>" + field + '<div class="save-state" aria-live="polite"></div></div>';
 }
 
 function updateProgress(){
@@ -469,7 +469,8 @@ function wire(){
         if (!r || !r.ok) throw new Error("save");
         last = v; stateEl.textContent = v ? "Saved" : "Cleared";
         var noCheck = []; try { noCheck = JSON.parse(item.querySelector(".answer").dataset.nocheck || "[]"); } catch (e) {}
-        if (v && !cb.checked && noCheck.indexOf(v) === -1) setCheck(item, cb, true);
+        var auto = item.querySelector(".answer").dataset.autocheck !== "0";
+        if (v && auto && !cb.checked && noCheck.indexOf(v) === -1) setCheck(item, cb, true);
       }).catch(function(){ stateEl.textContent = "Couldn't save your answer. Check your connection and try again."; stateEl.classList.add("err"); });
     }
     field.addEventListener("change", save);
