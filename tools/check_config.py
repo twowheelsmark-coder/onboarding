@@ -37,7 +37,7 @@ ITEM_TITLES = {
     "meta": "Facebook and Instagram", "gads": "Google Ads", "site_static": "Your website",
     "site_wordpress": "Your website (WordPress)", "calendly": "Calendly", "dns_cloudflare": "Domain (Cloudflare)",
 }
-HEADER = ["Key", "Item", "Client checked", "Client answer", "Last updated", "TWM confirmed", "Notes"]
+HEADER = ["Key", "Item", "Client checked", "Client answer", "Last updated", "TWM confirmed", "Notes", "Answer source"]
 
 ITEM_RULES = {
     "ga4": ["id"],
@@ -99,6 +99,20 @@ def validate(cfg):
             errors.append(f"items[{i}] answer.no_check values must match options exactly")
         if ans and "auto_check" in ans and not isinstance(ans["auto_check"], bool):
             errors.append(f"items[{i}] answer.auto_check must be true or false")
+    for i, q in enumerate(cfg.get("questions", [])):
+        k = str(q.get("key"))
+        keys.append(k)
+        if not re.fullmatch(r"q:[a-z0-9_]{2,30}", k):
+            errors.append(f"questions[{i}] key must look like 'q:usp' (lowercase, digits, underscore)")
+        for f in ("title", "question"):
+            if not q.get(f):
+                errors.append(f"questions[{i}] ({k}) missing {f}")
+        if q.get("type") not in (None, "long", "short"):
+            errors.append(f"questions[{i}] ({k}) type must be long or short")
+        if q.get("suggestion") is not None and not str(q["suggestion"]).strip():
+            errors.append(f"questions[{i}] ({k}) suggestion is empty; omit it instead")
+        if len(str(q.get("suggestion", ""))) > 3500:
+            errors.append(f"questions[{i}] ({k}) suggestion is too long (keep it under 3,500 characters)")
     dupes = {k for k in keys if keys.count(k) > 1}
     if dupes:
         errors.append(f"duplicate item keys: {', '.join(sorted(dupes))} (each becomes a tracker row and must be unique)")
@@ -145,7 +159,7 @@ def render(cfg, template_path, out):
             pg.route("https://mock.invalid/**", lambda r, q: r.fulfill(status=200, content_type="application/json", body=body))
             pg.goto(f"http://127.0.0.1:{port}/?c=previewtoken01")
             pg.wait_for_selector(".item", timeout=15000)
-            for d in pg.query_selector_all("details.item"):
+            for d in pg.query_selector_all("details.item, details.q"):
                 d.evaluate("el => el.open = true")
             if pg.evaluate("document.documentElement.scrollWidth") > w + 1:
                 errors.append(f"{name}: page scrolls sideways")
@@ -162,13 +176,15 @@ def emit(cfg, out, contact_name=None, token=None):
     for it in cfg["items"]:
         key = it["key"]
         title = it["vars"]["title"] if key.startswith("custom:") else ITEM_TITLES[key]
-        rows.append([key, title, "FALSE", "", "", "FALSE", ""])
+        rows.append([key, title, "FALSE", "", "", "FALSE", "", ""])
+    for q in cfg.get("questions", []):
+        rows.append([q["key"], q["title"], "FALSE", "", "", "FALSE", "", ""])
     link = PAGE_URL + token
     sheet = {
         "token": token,
         "link": link,
         "tab_name": cfg["client"],
-        "tab_range": f"'{cfg['client']}'!A1:G{len(rows)}",
+        "tab_range": f"'{cfg['client']}'!A1:H{len(rows)}",
         "tab_values": rows,
         "clients_row": [token, cfg["client"], cfg["domain"], contact_name or cfg.get("contact", ""), link,
                         datetime.date.today().isoformat(), json.dumps(cfg, separators=(",", ":"), ensure_ascii=False)],
