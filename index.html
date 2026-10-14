@@ -112,6 +112,38 @@ footer{margin:48px 0 0;padding:28px 0 48px;border-top:1px solid var(--rule);font
   .item .body{padding:0 14px 18px 14px}
   .ours{grid-template-columns:1fr}
 }
+/* About your business */
+.q{background:var(--paper);border:1px solid var(--rule);border-left:5px solid var(--chalk);border-radius:6px;margin:0 0 14px}
+.q.is-done{border-left-color:var(--found)}
+.q summary{list-style:none;cursor:pointer;padding:16px 20px;display:grid;grid-template-columns:1fr auto;gap:4px 14px;align-items:start}
+.q summary::-webkit-details-marker{display:none}
+.q h3{font:600 18px/1.3 var(--serif);color:var(--ink);margin:0}
+.q .ask{margin:4px 0 0;font-size:15px}
+.q .chev{color:var(--muted);font-size:20px;line-height:1;transition:transform .2s ease;margin-top:2px}
+.q[open] .chev{transform:rotate(90deg)}
+.status.review{background:#EAF0F9;color:var(--chalk)}
+.status.done{background:var(--found-bg);color:var(--found)}
+.q .body{padding:0 20px 20px}
+.q .help{margin:0 0 12px;font-size:15px;color:var(--muted)}
+.suggest{border:1px dashed var(--chalk);background:#F7F9FD;border-radius:6px;padding:14px 16px}
+.suggest .label{font:600 13px/1.3 var(--sans);letter-spacing:.04em;text-transform:uppercase;color:var(--chalk);margin:0 0 2px}
+.suggest .note{font-size:14px;color:var(--muted);margin:0 0 10px}
+.qtext{white-space:normal;color:var(--body)}
+.qtext ul{margin:0;padding-left:20px}
+.qtext li{margin:0 0 4px}
+.qtext p{margin:0 0 6px}
+.mine{border:1px solid var(--found);background:var(--found-bg);border-radius:6px;padding:14px 16px}
+.mine .label{font:600 13px/1.3 var(--sans);letter-spacing:.04em;text-transform:uppercase;color:var(--found);margin:0 0 8px}
+.qactions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:12px}
+.btn.ghost{background:var(--paper);color:var(--ink);border:1px solid var(--rule)}
+.btn.ghost:hover{border-color:var(--ink)}
+.q textarea,.q input.qin{width:100%;box-sizing:border-box;font:16px/1.5 var(--sans);padding:10px 12px;border:1px solid var(--rule);border-radius:6px;background:#fff;color:var(--ink)}
+.q textarea{min-height:150px;resize:vertical}
+.q textarea:focus,.q input.qin:focus{border-color:var(--chalk);outline:none;box-shadow:0 0 0 3px rgba(61,111,182,.2)}
+.q .save-state{margin-top:0}
+.qintro{background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:14px 16px;margin:0 0 18px;font-size:15px}
+.dl-row{margin:6px 0 0}
+@media (max-width:560px){ .q summary{padding:14px} .q .body{padding:0 14px 16px} .qactions .btn{flex:1 1 auto} }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 @media print{body{background:#fff}.copy,.btn,.progress,.answer{display:none}.item{break-inside:avoid}}
 h2.section.first{margin-top:36px}
@@ -400,6 +432,8 @@ function render(){
     "</details>";
   });
 
+  if (c.questions && c.questions.length) html += renderQuestions(c);
+
   if (c.handled && c.handled.length){
     html += '<h2 class="section">What we\'ll handle</h2><p class="section-sub">Nothing to do here. Once access is in place, we set these up inside accounts you own.</p><div class="ours">';
     c.handled.forEach(function(h){ html += "<div><strong>" + esc(h[0]) + "</strong><span>" + esc(h[1]) + "</span></div>"; });
@@ -413,7 +447,128 @@ function render(){
   html += '<footer>Questions? Email <a href="mailto:' + esc(c.contact_email || CONTACT) + '">' + esc(c.contact_email || CONTACT) + "</a> and we'll walk through any of these with you.</footer>";
   app.innerHTML = html;
   wire();
+  wireQuestions();
   updateProgress();
+  updateQProgress();
+}
+
+/* ---------- About your business ---------- */
+var Q_NOTE = "From your website and Google listings. A starting point only, so please correct anything that's off.";
+function qText(t){
+  var lines = String(t || "").split(/\n/), out = "", list = [];
+  function flush(){ if (list.length){ out += "<ul><li>" + list.join("</li><li>") + "</li></ul>"; list = []; } }
+  lines.forEach(function(l){
+    var m = l.match(/^\s*[-*\u2022]\s+(.*)$/);
+    if (m) list.push(esc(m[1]));
+    else { flush(); if (l.trim()) out += "<p>" + esc(l) + "</p>"; }
+  });
+  flush();
+  return '<div class="qtext">' + out + "</div>";
+}
+function qStamp(p){
+  if (!p || !p.updated) return "Saved";
+  var d = new Date(p.updated); if (isNaN(d)) return "Saved";
+  return "Saved " + d.toLocaleDateString(undefined, { month: "short", day: "numeric" }) + " at " + d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+}
+function renderQuestions(c){
+  var html = '<h2 class="section">About your business</h2><p class="section-sub">These help us write ads that sound like you and reach the right people.</p>' +
+    '<div class="qintro">To save you time, we filled in what we could from your website and Google listings. Those are just our initial research, and you know your business far better than we do. If one looks right, click <span class="ui">Looks right</span>. If not, click <span class="ui">Edit</span> and change whatever you like.</div>' +
+    '<div class="progress" aria-live="polite"><div class="bar"><div class="fill" id="qfill"></div></div><span class="count" id="qcount"></span></div>';
+  c.questions.forEach(function(q){ html += '<details class="q" data-key="' + esc(q.key) + '"></details>'; });
+  html += '<p class="dl-row"><button type="button" class="btn ghost" id="qdownload">Download my answers</button></p>';
+  return html;
+}
+function qState(q){
+  var p = state.progress[q.key] || {};
+  return { p: p, answered: !!(p.answer && p.answer.trim()) };
+}
+function drawQ(el, q, mode){
+  var st = qState(q), p = st.p, status, cls, inner = "";
+  if (st.answered){ status = p.source === "confirmed" ? "Confirmed" : "Answered"; cls = "done"; }
+  else if (q.suggestion){ status = "Ready for your review"; cls = "review"; }
+  else { status = "Needs your answer"; cls = "missing"; }
+  el.classList.toggle("is-done", st.answered);
+  var field = q.type === "short"
+    ? '<input class="qin" type="text" maxlength="300" autocomplete="off" placeholder="' + esc(q.placeholder || "") + '">'
+    : '<textarea maxlength="4000" placeholder="' + esc(q.placeholder || "") + '"></textarea>';
+  if (mode === "edit"){
+    inner = field + '<div class="qactions"><button type="button" class="btn" data-q="save">Save</button>' +
+      ((st.answered || q.suggestion) ? '<button type="button" class="btn ghost" data-q="cancel">Cancel</button>' : "") +
+      '<span class="save-state" aria-live="polite"></span></div>';
+  } else if (st.answered){
+    inner = '<div class="mine"><p class="label">Your answer</p>' + qText(p.answer) + '</div>' +
+      '<div class="qactions"><button type="button" class="btn ghost" data-q="edit">Change</button><span class="save-state" aria-live="polite">' +
+      esc(qStamp(p) + (p.source === "confirmed" ? ", you confirmed our suggestion" : "")) + "</span></div>";
+  } else if (q.suggestion){
+    inner = '<div class="suggest"><p class="label">Our starting point</p><p class="note">' + esc(q.note || Q_NOTE) + "</p>" + qText(q.suggestion) + "</div>" +
+      '<div class="qactions"><button type="button" class="btn" data-q="confirm">Looks right</button><button type="button" class="btn ghost" data-q="edit">Edit</button><span class="save-state" aria-live="polite"></span></div>';
+  } else {
+    inner = field + '<div class="qactions"><button type="button" class="btn" data-q="save">Save</button><span class="save-state" aria-live="polite"></span></div>';
+  }
+  var wasOpen = el.open;
+  el.innerHTML = "<summary><span><h3>" + esc(q.title) + '</h3><p class="ask">' + esc(q.question) + '</p><span class="status ' + cls + '">' + esc(status) + "</span></span>" +
+    '<span class="chev" aria-hidden="true">&#8250;</span></summary>' +
+    '<div class="body">' + (q.help ? '<p class="help">' + esc(q.help) + "</p>" : "") + inner + "</div>";
+  el.open = wasOpen;
+  var input = el.querySelector("textarea, input.qin");
+  if (input){
+    input.value = st.answered ? p.answer : (q.suggestion && mode === "edit" ? q.suggestion : "");
+    if (mode === "edit" && el.open) setTimeout(function(){ input.focus(); }, 0);
+  }
+  el.querySelectorAll("[data-q]").forEach(function(b){
+    b.addEventListener("click", function(){ qAction(el, q, b.dataset.q); });
+  });
+  updateQProgress();
+}
+function qAction(el, q, act){
+  if (act === "edit") return drawQ(el, q, "edit");
+  if (act === "cancel") return drawQ(el, q, "view");
+  var stateEl = el.querySelector(".save-state"), answer, source;
+  if (act === "confirm"){ answer = q.suggestion; source = "confirmed"; }
+  else {
+    answer = (el.querySelector("textarea, input.qin").value || "").trim();
+    if (!answer){ stateEl.textContent = "Type an answer first."; stateEl.classList.add("err"); return; }
+    source = q.suggestion ? (answer === q.suggestion.trim() ? "confirmed" : "edited") : "written";
+  }
+  el.querySelectorAll("button").forEach(function(b){ b.disabled = true; });
+  stateEl.classList.remove("err"); stateEl.textContent = "Saving";
+  api({ key: q.key, answer: answer, source: source, checked: true }).then(function(r){
+    if (!r || !r.ok) throw new Error("save");
+    state.progress = r.progress || state.progress;
+    if (!state.progress[q.key]) state.progress[q.key] = {};
+    state.progress[q.key].answer = answer; state.progress[q.key].source = source;
+    if (!state.progress[q.key].updated) state.progress[q.key].updated = new Date().toISOString();
+    drawQ(el, q, "view");
+  }).catch(function(){
+    el.querySelectorAll("button").forEach(function(b){ b.disabled = false; });
+    stateEl.textContent = "Couldn't save. Check your connection and try again."; stateEl.classList.add("err");
+  });
+}
+function wireQuestions(){
+  var qs = (state.cfg.questions || []);
+  qs.forEach(function(q){
+    var el = app.querySelector('details.q[data-key="' + q.key.replace(/"/g, "") + '"]');
+    if (el) drawQ(el, q, "view");
+  });
+  var dl = document.getElementById("qdownload");
+  if (dl) dl.addEventListener("click", function(){
+    var c = state.cfg, lines = [c.client + ": answers for Two Wheels Marketing", "Downloaded " + new Date().toLocaleString(), ""];
+    qs.forEach(function(q){
+      var p = state.progress[q.key] || {};
+      lines.push(q.question); lines.push(p.answer && p.answer.trim() ? p.answer : "(not answered yet)"); lines.push("");
+    });
+    var blob = new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" });
+    var a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+    a.download = c.client.replace(/[^A-Za-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim() + " answers.txt";
+    document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  });
+}
+function updateQProgress(){
+  var qs = (state.cfg && state.cfg.questions) || [], el = document.getElementById("qcount");
+  if (!el) return;
+  var done = qs.filter(function(q){ return qState(q).answered; }).length;
+  el.textContent = done + " of " + qs.length + " answered";
+  document.getElementById("qfill").style.width = (qs.length ? done / qs.length * 100 : 0) + "%";
 }
 
 function answerField(key, a, value){
