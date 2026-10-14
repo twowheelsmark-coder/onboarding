@@ -138,6 +138,11 @@ def parse_gtm(container_id):
         return {"id": container_id, "fetched": False, "status": status}
     ids = find_ids(body)
     ids.pop("gtm", None)
+    # Meta pixels added as Custom HTML often keep the ID in a constant variable, not in fbq('init', ...)
+    if "fbevents.js" in body and not ids.get("meta_pixel"):
+        cands = sorted(set(re.findall(r'"vtp_(?:value|pixelId)":"(\d{15,16})"', body)))
+        if cands:
+            ids["meta_pixel"] = cands
     types = {label: body.count(f'"{key}"') for key, label in GTM_TAG_TYPES.items() if f'"{key}"' in body}
     vendors = sorted(v for v, p in VENDOR_MARKERS.items() if re.search(p, body, re.I) and v not in ("Elementor",))
     return {"id": container_id, "fetched": True, "ids_inside": ids, "tag_types": types, "vendors_inside": vendors}
