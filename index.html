@@ -192,7 +192,7 @@ h2.section.first{margin-top:36px}
 (function(){
 "use strict";
 var SCRIPT_URL = window.TWM_SCRIPT_URL || "";
-var CONTACT = "ryan@twowheelsmarketing.com";
+var CONTACT = "mark@twowheelsmarketing.com";
 var META_BUSINESS_ID = "1555589024761863"; // Two Wheels Marketing business portfolio
 
 var token = (new URLSearchParams(location.search).get("c") || "").trim().toLowerCase();
@@ -497,7 +497,9 @@ function drawQ(el, q, mode){
       '<span class="save-state" aria-live="polite"></span></div>';
   } else if (st.answered){
     inner = '<div class="mine"><p class="label">Your answer</p>' + qText(p.answer) + '</div>' +
-      '<div class="qactions"><button type="button" class="btn ghost" data-q="edit">Change</button><span class="save-state" aria-live="polite">' +
+      '<div class="qactions"><button type="button" class="btn ghost" data-q="edit">Change</button>' +
+      '<button type="button" class="btn ghost" data-q="undo">' + (p.source === "confirmed" ? "Undo" : q.suggestion ? "Reset to our suggestion" : "Clear answer") + "</button>" +
+      '<span class="save-state" aria-live="polite">' +
       esc(qStamp(p) + (p.source === "confirmed" ? ", you confirmed our suggestion" : "")) + "</span></div>";
   } else if (q.suggestion){
     inner = '<div class="suggest"><p class="label">Our starting point</p><p class="note">' + esc(q.note || Q_NOTE) + "</p>" + qText(q.suggestion) + "</div>" +
@@ -523,8 +525,18 @@ function drawQ(el, q, mode){
 function qAction(el, q, act){
   if (act === "edit") return drawQ(el, q, "edit");
   if (act === "cancel") return drawQ(el, q, "view");
-  var stateEl = el.querySelector(".save-state"), answer, source;
-  if (act === "confirm"){ answer = q.suggestion; source = "confirmed"; }
+  var stateEl = el.querySelector(".save-state"), answer, source, checked = true;
+  if (act === "undo"){
+    var p0 = (state.progress[q.key] || {}), btn = el.querySelector('[data-q="undo"]');
+    // Undoing a plain confirmation is safe; anything the client typed needs a second click so it isn't lost by accident
+    if (p0.source !== "confirmed" && !btn.dataset.armed){
+      btn.dataset.armed = "1"; btn.textContent = "Click again to clear what you wrote";
+      setTimeout(function(){ if (btn.isConnected){ delete btn.dataset.armed; btn.textContent = q.suggestion ? "Reset to our suggestion" : "Clear answer"; } }, 5000);
+      return;
+    }
+    answer = ""; source = ""; checked = false;
+  }
+  else if (act === "confirm"){ answer = q.suggestion; source = "confirmed"; }
   else {
     answer = (el.querySelector("textarea, input.qin").value || "").trim();
     if (!answer){ stateEl.textContent = "Type an answer first."; stateEl.classList.add("err"); return; }
@@ -532,13 +544,14 @@ function qAction(el, q, act){
   }
   el.querySelectorAll("button").forEach(function(b){ b.disabled = true; });
   stateEl.classList.remove("err"); stateEl.textContent = "Saving";
-  api({ key: q.key, answer: answer, source: source, checked: true }).then(function(r){
+  api({ key: q.key, answer: answer, source: source, checked: checked }).then(function(r){
     if (!r || !r.ok) throw new Error("save");
     state.progress = r.progress || state.progress;
     if (!state.progress[q.key]) state.progress[q.key] = {};
     state.progress[q.key].answer = answer; state.progress[q.key].source = source;
     if (!state.progress[q.key].updated) state.progress[q.key].updated = new Date().toISOString();
     drawQ(el, q, "view");
+    if (act === "undo"){ var s2 = el.querySelector(".save-state"); if (s2) s2.textContent = q.suggestion ? "Cleared. Our suggestion is back for review." : "Cleared."; }
   }).catch(function(){
     el.querySelectorAll("button").forEach(function(b){ b.disabled = false; });
     stateEl.textContent = "Couldn't save. Check your connection and try again."; stateEl.classList.add("err");
