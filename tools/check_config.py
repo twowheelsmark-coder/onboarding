@@ -97,6 +97,8 @@ def validate(cfg):
             errors.append(f"items[{i}] select answer needs options (first option should be \"\")")
         if ans and any(x not in ans.get("options", []) for x in ans.get("no_check", [])) and ans.get("type") == "select":
             errors.append(f"items[{i}] answer.no_check values must match options exactly")
+        if ans and "auto_check" in ans and not isinstance(ans["auto_check"], bool):
+            errors.append(f"items[{i}] answer.auto_check must be true or false")
     dupes = {k for k in keys if keys.count(k) > 1}
     if dupes:
         errors.append(f"duplicate item keys: {', '.join(sorted(dupes))} (each becomes a tracker row and must be unique)")
